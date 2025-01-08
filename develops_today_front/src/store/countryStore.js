@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import axios from 'axios';
 
 const useCountryStore = create((set, get) => ({
     countries: [],
@@ -9,8 +8,10 @@ const useCountryStore = create((set, get) => ({
 
     fetchCountries: async () => {
         try {
-            const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/showAvilableCountries`);
-            set({ countries: response.data });
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/showAvilableCountries`);
+            if (!response.ok) throw new Error('Failed to fetch countries');
+            const data = await response.json();
+            set({ countries: data });
         } catch (error) {
             console.error('Error fetching countries:', error);
         }
@@ -18,8 +19,10 @@ const useCountryStore = create((set, get) => ({
 
     fetchCountryInfo: async (code) => {
         try {
-            const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/showCountryInfo/${code}`);
-            set({ countryInfo: response.data });
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/showCountryInfo/${code}`);
+            if (!response.ok) throw new Error('Failed to fetch country info');
+            const data = await response.json();
+            set({ countryInfo: data });
         } catch (error) {
             console.error('Error fetching country info:', error);
         }
@@ -27,8 +30,10 @@ const useCountryStore = create((set, get) => ({
 
     fetchCountryFlags: async (countryName) => {
         try {
-            const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/showCountriesFlags`);
-            const countryFlag = response.data.find((country) => country.name === countryName);
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/showCountriesFlags`);
+            if (!response.ok) throw new Error('Failed to fetch country flags');
+            const data = await response.json();
+            const countryFlag = data.find((country) => country.name === countryName);
 
             if (countryFlag) {
                 set({ countryFlags: [countryFlag] });

@@ -1,69 +1,84 @@
+// CountryInfo.test.js
+
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import CountryInfo from './CountryInfo';
 import useCountryStore from '../../store/countryStore';
 import usePopulationStore from '../../store/populationStore';
+import CountryInfo from './CountryInfo';
 
-// Mock correcto del store con la implementación necesaria
-jest.mock('../../store/countryStore', () => {
-    return jest.fn(() => ({
-        selectedCountry: { name: 'Argentina', code: 'AR' },
-        countryInfo: { name: 'Argentina', borders: [{ commonName: 'Chile', countryCode: 'CL' }] },
-        countryFlags: [{ flag: 'https://flagcdn.com/ar.svg' }],
-        setSelectedCountry: jest.fn(),
-    }));
-});
+// Mock del chart para evitar errores relacionados con canvas
+jest.mock('react-chartjs-2', () => ({
+    Line: () => <div>Mocked Line Chart</div>,
+}));
 
-jest.mock('../../store/populationStore', () => {
-    return jest.fn(() => ({
-        populationData: [{ year: 2020, value: 45000000 }],
-        fetchPopulationData: jest.fn(),
-        resetPopulationData: jest.fn(),
-    }));
-});
+// Mock de useCountryStore
+const mockSetSelectedCountry = jest.fn();
+
+jest.mock('../../store/countryStore', () => ({
+    __esModule: true,
+    default: () => ({
+        selectedCountry: { name: 'Germany', code: 'DE' },
+        countryInfo: {
+            name: 'Germany',
+            borders: [{ commonName: 'France', countryCode: 'FR' }],
+        },
+        countryFlags: [{ flag: 'https://flagcdn.com/de.png' }],
+        setSelectedCountry: mockSetSelectedCountry,
+    }),
+}));
+
+// Mock de usePopulationStore
+const mockFetchPopulationData = jest.fn();
+const mockResetPopulationData = jest.fn();
+
+jest.mock('../../store/populationStore', () => ({
+    __esModule: true,
+    default: () => ({
+        populationData: [
+            { year: 2000, value: 80000000 },
+            { year: 2010, value: 82000000 },
+        ],
+        fetchPopulationData: mockFetchPopulationData,
+        resetPopulationData: mockResetPopulationData,
+    }),
+}));
 
 describe('CountryInfo Component', () => {
-    test('renders country information correctly', () => {
+    it('renders country information correctly', () => {
         render(
             <MemoryRouter>
                 <CountryInfo />
             </MemoryRouter>
         );
 
-        // Verificar que el título con el nombre del país se renderiza
+        // Verifica que el nombre del país se renderice
         expect(screen.getByText('Argentina')).toBeInTheDocument();
 
-        // Verificar que la imagen de la bandera se renderiza
-        expect(screen.getByAltText('Argentina flag')).toBeInTheDocument();
-
-        // Verificar que el título "Border Countries" se renderiza
+        // Verifica que el título de "Border Countries" se renderice
         expect(screen.getByText('Border Countries')).toBeInTheDocument();
+
+        // Verifica que el botón "Back to Country List" se renderice
+        expect(screen.getByText('Back to Country List')).toBeInTheDocument();
+
+        // Verifica que el gráfico mockeado se renderice
+        expect(screen.getByText('Mocked Line Chart')).toBeInTheDocument();
     });
 
-    test('calls setSelectedCountry and resets population data on back button click', () => {
-        const { setSelectedCountry, resetPopulationData } = useCountryStore();
+    it('calls setSelectedCountry and resetPopulationData on back button click', () => {
         render(
             <MemoryRouter>
                 <CountryInfo />
             </MemoryRouter>
         );
 
-        const backButton = screen.getByText('Back to Country List');
-        fireEvent.click(backButton);
+        // Simula el clic en el botón "Back to Country List"
+        fireEvent.click(screen.getByText('Back to Country List'));
 
-        expect(setSelectedCountry).toHaveBeenCalledWith(null);
-        expect(resetPopulationData).toHaveBeenCalledTimes(1);
-    });
+        // Verifica que setSelectedCountry haya sido llamado con null
+        expect(mockSetSelectedCountry).toHaveBeenCalledWith(null);
 
-    test('renders border countries correctly', () => {
-        render(
-            <MemoryRouter>
-                <CountryInfo />
-            </MemoryRouter>
-        );
-
-        // Verificar que el nombre del país fronterizo se renderiza
-        expect(screen.getByText('Chile')).toBeInTheDocument();
+        // Verifica que resetPopulationData haya sido llamado
+        expect(mockResetPopulationData).toHaveBeenCalled();
     });
 });

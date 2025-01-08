@@ -1,14 +1,15 @@
 import { create } from 'zustand';
-import axios from 'axios';
 
 const usePopulationStore = create((set) => ({
     populationData: [],
 
     fetchPopulationData: async (countryName) => {
         try {
-            const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/showCountriesPopulation`);
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/showCountriesPopulation`);
+            if (!response.ok) throw new Error('Failed to fetch population data');
+            const data = await response.json();
 
-            const countryData = response.data.find((item) => item.country === countryName);
+            const countryData = data.find((item) => item.country === countryName);
 
             if (countryData) {
                 console.log('Population data:', countryData.populationCounts);

@@ -48,11 +48,11 @@ const CountryInfo = () => {
     if (!countryInfo) return <p>Loading...</p>;
 
     const chartData = {
-        labels: populationData.map((entry) => entry.year),
+        labels: (populationData || []).map((entry) => entry.year),
         datasets: [
             {
                 label: 'Population',
-                data: populationData.map((entry) => entry.value),
+                data: (populationData || []).map((entry) => entry.value),
                 borderColor: '#4caf50',
                 borderWidth: 2,
                 pointRadius: 3,
@@ -61,6 +61,7 @@ const CountryInfo = () => {
             },
         ],
     };
+    
 
     return (
         <div className={styles.container}>

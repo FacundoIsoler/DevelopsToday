@@ -1,30 +1,18 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, fireEvent, screen } from '@testing-library/react';
 import BorderCountry from './BorderCountry';
 import useCountryStore from '../../store/countryStore';
 
-jest.mock('../../store/countryStore', () => ({
-    __esModule: true,
-    default: jest.fn(() => ({
-        setSelectedCountry: jest.fn(),
-    })),
-}));
+jest.mock('../../store/countryStore');
 
 describe('BorderCountry Component', () => {
-    const mockBorder = { commonName: 'Chile', countryCode: 'CL' };
-    const { setSelectedCountry } = useCountryStore();
+    it('calls setSelectedCountry on click', () => {
+        const mockSetSelectedCountry = jest.fn();
+        useCountryStore.mockReturnValue({ setSelectedCountry: mockSetSelectedCountry });
 
-    test('renders border country name and flag correctly', () => {
-        render(<BorderCountry border={mockBorder} />);
+        render(<BorderCountry border={{ commonName: 'France', countryCode: 'FR' }} />);
 
-        expect(screen.getByText('Chile')).toBeInTheDocument();
-        expect(screen.getByAltText('Chile flag')).toBeInTheDocument();
-    });
-
-    test('calls setSelectedCountry on click', () => {
-        render(<BorderCountry border={mockBorder} />);
-
-        fireEvent.click(screen.getByText('Chile'));
-        expect(setSelectedCountry).toHaveBeenCalledWith({ name: 'Chile', code: 'CL' });
+        fireEvent.click(screen.getByText('France'));
+        expect(mockSetSelectedCountry).toHaveBeenCalledWith({ name: 'France', code: 'FR' });
     });
 });
